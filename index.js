@@ -27,16 +27,35 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
 
-        const usersDB = client.db("usersDB");
-        const usersColl = usersDB.collection("usersColl");
+        const utilityDB = client.db("utilityBillManagement");
+        const usersColl = utilityDB.collection("usersColl");
+        const categoriesColl = utilityDB.collection("categories");
 
         // database related apis
+        app.get("/categories", async (req, res) => {
+            const categories = await categoriesColl.find({}).toArray();
+            res.json(categories);
+        });
+
 
         app.get('/bills', async (req, res) => {
-            const cursor = usersColl.find();
-            const result = await cursor.toArray();
-            res.send(result);
+            const limit = parseInt(req.query.limit) || 0;
+            const category = req.query.category;
+
+            let query = {};
+            if (category) {
+                query = { category: category };
+            }
+            const cursor = usersColl.find(query).sort({ date: -1 }).limit(limit);
+            const bills = await cursor.toArray();
+            res.send(bills);
         })
+
+        // app.get('/bills', async (req, res) => {
+        //     const cursor = usersColl.find();
+        //     const result = await cursor.toArray();
+        //     res.send(result);
+        // })
         // find
         app.get('/bills/:id', async (req, res) => {
             const id = req.params.id;
@@ -47,7 +66,7 @@ async function run() {
         })
 
         app.post('/bills', async (req, res) => {
-            const newPayment = req.body;
+            const newPayment = { ...req.body, date: new Date() };
             console.log("POST: ", newPayment);
             const result = await usersColl.insertOne(newPayment);
             console.log(result);
