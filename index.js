@@ -1,6 +1,6 @@
 const express = require('express')
 const cors = require('cors')
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
 const port = process.env.PORT || 3000
 
@@ -32,9 +32,17 @@ async function run() {
 
         // database related apis
 
-        app.get('/bills', async(req,res)=>{
+        app.get('/bills', async (req, res) => {
             const cursor = usersColl.find();
             const result = await cursor.toArray();
+            res.send(result);
+        })
+        // find
+        app.get('/bills/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await usersColl.findOne(query);
+            console.log(result)
             res.send(result);
         })
 
@@ -45,11 +53,36 @@ async function run() {
             console.log(result);
             res.send(result);
         })
+
+        app.patch('/update/:id', async (req, res) => {
+            const id = req.params.id;
+            const updatedInfo = req.body;
+            const query = { _id: new ObjectId(id) };
+            const update = {
+                $set: {
+                    title: updatedInfo.title,
+                    amount: updatedInfo.amount
+                }
+            }
+            const options = {};
+            const result = await usersColl.updateOne(query, update, options);
+            console.log(result)
+            res.send(result);
+        })
+
+
+        app.delete('/bills/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await usersColl.deleteOne(query);
+            console.log(result)
+            res.send(result);
+        })
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
-        
+
     }
 }
 run().catch(console.dir);
