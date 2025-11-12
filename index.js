@@ -28,7 +28,7 @@ async function run() {
         await client.connect();
 
         const utilityDB = client.db("utilityBillManagement");
-        const usersColl = utilityDB.collection("usersColl");
+        const bills = utilityDB.collection("bills");
         const categoriesColl = utilityDB.collection("categories");
 
         // database related apis
@@ -46,9 +46,9 @@ async function run() {
             if (category) {
                 query = { category: category };
             }
-            const cursor = usersColl.find(query).sort({ date: -1 }).limit(limit);
-            const bills = await cursor.toArray();
-            res.send(bills);
+            const cursor = bills.find(query).sort({ date: -1 }).limit(limit);
+            const result = await cursor.toArray();
+            res.send(result);
         })
 
         // app.get('/bills', async (req, res) => {
@@ -60,7 +60,7 @@ async function run() {
         app.get('/bills/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
-            const result = await usersColl.findOne(query);
+            const result = await bills.findOne(query);
             console.log(result)
             res.send(result);
         })
@@ -68,12 +68,12 @@ async function run() {
         app.post('/bills', async (req, res) => {
             const newPayment = { ...req.body, date: new Date() };
             console.log("POST: ", newPayment);
-            const result = await usersColl.insertOne(newPayment);
+            const result = await bills.insertOne(newPayment);
             console.log(result);
             res.send(result);
         })
 
-        app.patch('/update/:id', async (req, res) => {
+        app.patch('/bills/:id', async (req, res) => {
             const id = req.params.id;
             const updatedInfo = req.body;
             const query = { _id: new ObjectId(id) };
@@ -84,7 +84,7 @@ async function run() {
                 }
             }
             const options = {};
-            const result = await usersColl.updateOne(query, update, options);
+            const result = await bills.updateOne(query, update, options);
             console.log(result)
             res.send(result);
         })
@@ -93,7 +93,7 @@ async function run() {
         app.delete('/bills/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
-            const result = await usersColl.deleteOne(query);
+            const result = await bills.deleteOne(query);
             console.log(result)
             res.send(result);
         })
