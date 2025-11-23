@@ -25,7 +25,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
         const utilityDB = client.db("utilityBillManagement");
         const bills = utilityDB.collection("bills");
@@ -45,7 +45,7 @@ async function run() {
             const search = req.query.search;
 
             let query = {};
-            
+
             if (category && category !== 'All Categories') {
                 query.category = category;
             }
@@ -59,50 +59,17 @@ async function run() {
             res.send(result);
         });
 
-        // app.get('/bills', async (req, res) => {
-        //     const cursor = usersColl.find();
-        //     const result = await cursor.toArray();
-        //     res.send(result);
-        // })
         // find
         app.get('/bills/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await bills.findOne(query);
-            console.log(result)
             res.send(result);
         });
 
         app.post('/bills', async (req, res) => {
             const newPayment = { ...req.body, date: new Date() };
-            console.log("POST: ", newPayment);
             const result = await bills.insertOne(newPayment);
-            console.log(result);
-            res.send(result);
-        });
-
-        app.patch('/bills/:id', async (req, res) => {
-            const id = req.params.id;
-            const updatedInfo = req.body;
-            const query = { _id: new ObjectId(id) };
-            const update = {
-                $set: {
-                    title: updatedInfo.title,
-                    amount: updatedInfo.amount
-                }
-            }
-            const options = {};
-            const result = await bills.updateOne(query, update, options);
-            console.log(result)
-            res.send(result);
-        });
-
-
-        app.delete('/bills/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = { _id: new ObjectId(id) };
-            const result = await bills.deleteOne(query);
-            console.log(result)
             res.send(result);
         });
 
@@ -137,7 +104,7 @@ async function run() {
         });
 
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
+        // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
 
@@ -151,14 +118,8 @@ app.get('/', (req, res) => {
     res.send('Get working')
 })
 
-
-// app.post('/bills', (req, res) => {
-//     console.log("post method called", req.body);
-//     const newPayment = req.body;
-//     const inc = bills.length + 1;
-//     newPayment._id = `b${bills.length + 1}`;
-//     res.send(newPayment);
-// })
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
 })
+
+module.exports = app;
