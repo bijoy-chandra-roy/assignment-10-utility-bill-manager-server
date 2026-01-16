@@ -64,6 +64,13 @@ async function run() {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await bills.findOne(query);
+
+            if (result) {
+                if (!result.images || !Array.isArray(result.images)) {
+                    result.images = result.image ? [result.image, result.image, result.image] : [];
+                }
+            }
+            
             res.send(result);
         });
 
