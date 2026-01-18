@@ -40,40 +40,33 @@ async function run() {
 
 
         app.get('/bills', async (req, res) => {
-            // 1. Pagination Params
             const page = parseInt(req.query.page) || 1;
             const limit = parseInt(req.query.limit) || 9; 
             const skip = (page - 1) * limit;
 
-            // 2. Extract Params
             const { category, search, minPrice, maxPrice, sort } = req.query;
 
             let query = {};
 
-            // Filter 1: Category
             if (category && category !== 'All Categories') {
                 query.category = category;
             }
 
-            // Search
             if (search) {
                 query.title = { $regex: search, $options: 'i' };
             }
 
-            // Filter 2: Price Range (To meet "At least 2 fields" requirement)
             if (minPrice || maxPrice) {
                 query.amount = {};
                 if (minPrice) query.amount.$gte = parseFloat(minPrice);
                 if (maxPrice) query.amount.$lte = parseFloat(maxPrice);
             }
 
-            // 3. Sorting Logic
-            let sortOptions = { date: -1 }; // Default: Newest first
+            let sortOptions = { date: -1 };
             if (sort === 'price_asc') sortOptions = { amount: 1 };
             else if (sort === 'price_desc') sortOptions = { amount: -1 };
             else if (sort === 'date_asc') sortOptions = { date: 1 };
 
-            // 4. Execution
             const total = await bills.countDocuments(query);
             
             const result = await bills.find(query)
@@ -82,7 +75,6 @@ async function run() {
                 .limit(limit)
                 .toArray();
 
-            // Image Normalization (Safety check we added earlier)
             const finalResult = result.map(bill => ({
                 ...bill,
                 images: (!bill.images || !Array.isArray(bill.images)) 
@@ -90,7 +82,6 @@ async function run() {
                     : bill.images
             }));
 
-            // Return Object (Data + Meta for Pagination)
             res.send({
                 bills: finalResult,
                 totalBills: total,
